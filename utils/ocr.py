@@ -101,11 +101,12 @@ def extract_text(image_path):
         return ""  # couldn't even open/process the image file itself
 
     try:
-        return pytesseract.image_to_string(img)
+        return pytesseract.image_to_string(img, lang="eng")
     except pytesseract.TesseractNotFoundError:
         raise
-    except Exception:
-        return ""
+    except Exception as e:
+        print("OCR ERROR:", repr(e), flush=True)
+        raise
 
 
 def _clean_number(raw):
