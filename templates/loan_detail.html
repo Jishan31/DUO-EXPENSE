@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ loan.name }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/budgets.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loans.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <a href="{{ url_for('loan.loans_page') }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to loans</a>
+
+  <div class="glass-strong card reveal" style="padding:28px;">
+    <div class="loan-detail-header">
+      <div>
+        <span class="loan-type-badge">{{ loan.loan_type }}</span>
+        <h1 style="font-size:24px; margin-top:10px;">{{ loan.name }}</h1>
+        <p class="text-muted mt-8">{{ loan.lender or 'No lender specified' }} · {{ loan.interest_rate }}% p.a. · {{ loan.tenure_months }} months</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="{{ url_for('loan.edit_loan', loan_id=loan.id) }}" class="btn btn-glass btn-sm">Edit</a>
+        <form method="POST" action="{{ url_for('loan.delete_loan', loan_id=loan.id) }}" onsubmit="return confirm('Delete this loan and its entire schedule?');">
+          <button type="submit" class="btn btn-ghost btn-sm">Delete</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="loan-gauge-row">
+      <div class="loan-gauge-item">
+        <div class="gauge-wrap sm" data-percent="{{ loan.percent_paid() }}" data-status="ok">
+          <svg viewBox="0 0 120 120"><circle class="gauge-track" cx="60" cy="60" r="50"></circle><circle class="gauge-fill status-ok" cx="60" cy="60" r="50"></circle></svg>
+          <div class="gauge-label"><span class="pct">{{ loan.percent_paid()|round(0)|int }}%</span></div>
+        </div>
+        <div class="fig"><div class="val tabular">₹{{ '{:,.0f}'.format(loan.principal_paid()) }} / ₹{{ '{:,.0f}'.format(loan.principal_amount) }}</div><div class="lbl">Principal repaid</div></div>
+      </div>
+      <div class="loan-gauge-item">
+        <div class="fig"><div class="val tabular">₹{{ '{:,.0f}'.format(loan.interest_paid()) }} / ₹{{ '{:,.0f}'.format(loan.total_interest()) }}</div><div class="lbl">Interest paid</div></div>
+      </div>
+      <div class="loan-gauge-item">
+        <div class="fig"><div class="val tabular">₹{{ '{:,.0f}'.format(loan.monthly_emi) }}</div><div class="lbl">Monthly EMI</div></div>
+      </div>
+      <div class="loan-gauge-item">
+        <div class="fig"><div class="val tabular">₹{{ '{:,.0f}'.format(loan.principal_remaining()) }}</div><div class="lbl">Principal remaining</div></div>
+      </div>
+    </div>
+    {% if loan.notes %}<p class="text-muted" style="font-size:13.5px;">📝 {{ loan.notes }}</p>{% endif %}
+  </div>
+
+  {% if upcoming %}
+  <div class="glass card mt-24 reveal">
+    <h3 style="font-size:16px; margin-bottom:14px;">Upcoming Installments</h3>
+    <div class="schedule-table-wrap">
+      <table class="tx-table" style="min-width:640px; width:100%;">
+        <thead><tr><th>#</th><th>Due Date</th><th>Principal</th><th>Interest</th><th>Amount</th><th></th></tr></thead>
+        <tbody>
+          {% for p in upcoming[:6] %}
+          <tr>
+            <td>{{ p.installment_no }}</td>
+            <td>
+              {{ p.due_date.strftime('%b %d, %Y') }}
+              {% if p.due_date < today %}<span class="due-badge overdue" style="margin-left:6px;">Overdue</span>
+              {% elif (p.due_date - today).days <= 7 %}<span class="due-badge soon" style="margin-left:6px;">Due soon</span>{% endif %}
+            </td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(p.principal_component) }}</td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(p.interest_component) }}</td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(p.amount) }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('loan.mark_paid', loan_id=loan.id, payment_id=p.id) }}" class="pay-form">
+                <select name="payment_mode">{% for m in payment_modes %}<option value="{{ m }}">{{ m }}</option>{% endfor %}</select>
+                <input type="date" name="paid_date" value="{{ today.isoformat() }}">
+                <button type="submit" class="btn btn-primary btn-sm">Mark Paid</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if upcoming|length > 6 %}<p class="text-muted mt-16" style="font-size:12.5px;">+ {{ upcoming|length - 6 }} more installment(s) remaining.</p>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if paid %}
+  <div class="glass card mt-24 reveal">
+    <h3 style="font-size:16px; margin-bottom:14px;">Payment History</h3>
+    <div class="schedule-table-wrap">
+      <table class="tx-table" style="min-width:560px; width:100%;">
+        <thead><tr><th>#</th><th>Due Date</th><th>Paid On</th><th>Mode</th><th>Amount</th><th></th></tr></thead>
+        <tbody>
+          {% for p in paid|reverse %}
+          <tr class="schedule-row-paid">
+            <td>{{ p.installment_no }}</td>
+            <td>{{ p.due_date.strftime('%b %d, %Y') }}</td>
+            <td>{{ p.paid_date.strftime('%b %d, %Y') if p.paid_date else '—' }}</td>
+            <td>{{ p.payment_mode }}</td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(p.amount) }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('loan.unmark_paid', loan_id=loan.id, payment_id=p.id) }}" onsubmit="return confirm('Mark this installment as unpaid?');">
+                <button type="submit" class="btn btn-ghost btn-sm">Undo</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/budgets.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Loans & EMIs — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loans.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal">
+    <div>
+      <h1>Loans &amp; EMIs</h1>
+      <p>Track every loan's payoff progress with an automatic interest calculator.</p>
+    </div>
+    <a href="{{ url_for('loan.add_loan') }}" class="btn btn-primary">+ Add Loan / EMI</a>
+  </div>
+
+  <div class="loan-summary-row reveal">
+    <div class="loan-summary-card glass">
+      <div class="label">Total Outstanding Principal</div>
+      <div class="value tabular">₹{{ '{:,.0f}'.format(total_outstanding) }}</div>
+    </div>
+    <div class="loan-summary-card glass">
+      <div class="label">Total Monthly EMI Commitment</div>
+      <div class="value tabular">₹{{ '{:,.0f}'.format(total_monthly_emi) }}</div>
+    </div>
+  </div>
+
+  {% if not loan_cards %}
+  <div class="glass card reveal" style="text-align:center; padding:50px 20px;">
+    <div style="font-size:36px; margin-bottom:10px;">🏦</div>
+    <h3 style="margin-bottom:8px;">No loans tracked yet</h3>
+    <p class="text-muted">Add a loan or EMI and Duo Expense builds the full repayment schedule automatically.</p>
+    <a href="{{ url_for('loan.add_loan') }}" class="btn btn-primary mt-16" style="display:inline-flex;">+ Add Your First Loan</a>
+  </div>
+  {% else %}
+  <div class="loan-grid">
+    {% for item in loan_cards %}
+    {% set l = item.loan %}
+    <a href="{{ url_for('loan.loan_detail', loan_id=l.id) }}" class="loan-card glass card reveal">
+      <div class="loan-card-top">
+        <div>
+          <h3>{{ l.name }}</h3>
+          <div class="lender">{{ l.lender or 'No lender specified' }}</div>
+        </div>
+        <span class="loan-type-badge">{{ l.loan_type }}</span>
+      </div>
+
+      <div>
+        <div class="loan-progress-track"><div class="loan-progress-fill" style="width:{{ item.percent_paid }}%;"></div></div>
+        <div class="loan-progress-label">
+          <span>{{ item.percent_paid }}% paid off</span>
+          <span>₹{{ '{:,.0f}'.format(item.principal_remaining) }} left</span>
+        </div>
+      </div>
+
+      <div class="loan-emi-row">
+        <div>
+          <div class="emi-value tabular">₹{{ '{:,.0f}'.format(l.monthly_emi) }}</div>
+          <div class="emi-label">per month · {{ l.interest_rate }}% p.a.</div>
+        </div>
+        {% if l.status == 'closed' %}
+          <span class="due-badge closed">Closed ✓</span>
+        {% elif item.next_due %}
+          {% if item.days_until_due < 0 %}
+            <span class="due-badge overdue">Overdue</span>
+          {% elif item.days_until_due <= 7 %}
+            <span class="due-badge soon">Due in {{ item.days_until_due }}d</span>
+          {% else %}
+            <span class="due-badge ok">Due {{ item.next_due.due_date.strftime('%b %d') }}</span>
+          {% endif %}
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,217 @@
+/* ==========================================================================
+   The Expense Wheel — signature interactive centerpiece
+   SVG annular sectors (one per category) orbiting a liquid-glass core.
+   ========================================================================== */
+
+.wheel-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 20px;
+}
+
+.wheel-heading { text-align: center; margin-bottom: 6px; }
+.wheel-heading h2 { font-size: 26px; }
+.wheel-heading p { font-size: 14px; margin-top: 6px; }
+
+.wheel-wrap {
+  position: relative;
+  width: min(520px, 92vw);
+  height: min(520px, 92vw);
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+/* Ambient rotating rings behind the sectors — pure decoration */
+.wheel-ring-decor {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  border: 1px dashed rgba(124, 92, 191, 0.22);
+  animation: ring-spin 90s linear infinite;
+}
+.wheel-ring-decor.ring-2 {
+  inset: 2%;
+  border-color: rgba(181, 126, 220, 0.16);
+  animation-duration: 70s;
+  animation-direction: reverse;
+}
+@keyframes ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.wheel-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-style: preserve-3d;
+  animation: wheel-float 7s ease-in-out infinite;
+}
+@keyframes wheel-float {
+  0%, 100% { transform: rotateX(6deg) translateY(0); }
+  50% { transform: rotateX(6deg) translateY(-6px); }
+}
+
+/* The whole ring of sectors orbits slowly around the center... */
+.wheel-rotator {
+  transform-origin: 250px 250px;
+  animation: wheel-orbit 150s linear infinite;
+}
+/* ...while each label counter-rotates in perfect sync, so icons/text
+   always stay upright even as their sector orbits around them. */
+.wheel-label-counter {
+  animation: wheel-orbit-reverse 150s linear infinite;
+}
+@keyframes wheel-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes wheel-orbit-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+/* Pause the whole system on hover so it's easy to read and click precisely */
+.wheel-wrap:hover .wheel-rotator,
+.wheel-wrap:hover .wheel-label-counter {
+  animation-play-state: paused;
+}
+
+.wheel-sector {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.35s var(--ease), filter 0.35s var(--ease), opacity 0.35s var(--ease);
+  filter: drop-shadow(0 6px 14px rgba(124, 92, 191, 0.35));
+}
+
+.wheel-sector:hover, .wheel-sector.active {
+  transform: scale(1.06);
+  filter: drop-shadow(0 12px 24px rgba(124, 92, 191, 0.5)) brightness(1.1);
+}
+
+.wheel-sector-sheen {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.wheel-label-group {
+  pointer-events: none;
+  font-family: var(--font-body);
+}
+.wheel-label-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  fill: #ffffff;
+}
+.wheel-label-amount {
+  font-size: 11px;
+  font-weight: 500;
+  fill: rgba(255, 255, 255, 0.88);
+}
+
+.wheel-icon-badge {
+  pointer-events: none;
+}
+
+/* Center liquid-glass orb */
+.wheel-center {
+  position: absolute;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  cursor: pointer;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.9), rgba(255,255,255,0.35) 40%, rgba(181,126,220,0.55) 100%);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1.5px solid rgba(255,255,255,0.8);
+  box-shadow:
+    0 20px 45px rgba(124, 92, 191, 0.45),
+    inset 0 2px 12px rgba(255,255,255,0.9),
+    inset 0 -12px 24px rgba(124, 92, 191, 0.25);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  animation: orb-pulse 4.5s ease-in-out infinite;
+  z-index: 5;
+}
+.wheel-center:hover {
+  transform: scale(1.05);
+  box-shadow: 0 26px 55px rgba(124, 92, 191, 0.55), inset 0 2px 12px rgba(255,255,255,0.95), inset 0 -12px 24px rgba(124, 92, 191, 0.3);
+}
+.wheel-center:active { transform: scale(0.98); }
+
+@keyframes orb-pulse {
+  0%, 100% { box-shadow: 0 20px 45px rgba(124, 92, 191, 0.45), inset 0 2px 12px rgba(255,255,255,0.9), inset 0 -12px 24px rgba(124, 92, 191, 0.25); }
+  50% { box-shadow: 0 24px 55px rgba(124, 92, 191, 0.6), inset 0 2px 14px rgba(255,255,255,1), inset 0 -14px 28px rgba(124, 92, 191, 0.32); }
+}
+
+.wheel-center-icon { font-size: 26px; }
+.wheel-center-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(13px, 2.4vw, 16px);
+  color: var(--lavender-deep);
+}
+.wheel-center-sub {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+/* Floating tooltip that follows the hovered sector */
+.wheel-tooltip {
+  position: absolute;
+  pointer-events: none;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--glass-fill-strong);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  font-size: 12.5px;
+  opacity: 0;
+  transform: translate(-50%, -12px) scale(0.9);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  z-index: 20;
+  white-space: nowrap;
+}
+.wheel-tooltip.visible { opacity: 1; transform: translate(-50%, -20px) scale(1); }
+.wheel-tooltip strong { color: var(--ink); }
+
+/* Manage-categories chip list under the wheel */
+.category-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 36px;
+  max-width: 640px;
+}
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border-radius: var(--r-full);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  font-size: 13px;
+  font-weight: 500;
+}
+.category-chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+.category-chip button {
+  background: none; border: none; color: var(--ink-soft); font-size: 12px; padding: 2px;
+  opacity: 0.6; transition: opacity 0.2s;
+}
+.category-chip button:hover { opacity: 1; color: var(--danger); }
+.category-chip.add-chip {
+  background: var(--lavender-mist);
+  color: var(--lavender-deep);
+  font-weight: 600;
+  cursor: pointer;
+  border-style: dashed;
+}
+
+@media (max-width: 640px) {
+  .wheel-label-name { font-size: 10.5px; }
+  .wheel-label-amount { font-size: 9px; }
+}

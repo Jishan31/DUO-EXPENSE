@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wheel.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/budgets.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head reveal">
+    <h1>Good <span id="time-greeting">morning</span>, {{ current_user.username }} 👋</h1>
+    <p>Here's how your money is moving this month.</p>
+  </div>
+
+  <div id="dashboard-alerts"></div>
+
+  <div class="summary-grid" id="summary-grid">
+    <div class="summary-card glass card">
+      <div class="icon-chip chip-income">💰</div>
+      <div class="label">Monthly Income</div>
+      <div class="value tabular" data-field="income">₹0</div>
+      <div class="delta text-success" id="income-delta"></div>
+    </div>
+    <div class="summary-card glass card">
+      <div class="icon-chip chip-expense">💸</div>
+      <div class="label">Monthly Expense</div>
+      <div class="value tabular" data-field="expense">₹0</div>
+      <div class="delta text-danger" id="expense-delta"></div>
+    </div>
+    <div class="summary-card glass card">
+      <div class="icon-chip chip-balance">⚖️</div>
+      <div class="label">Balance</div>
+      <div class="value tabular" data-field="balance">₹0</div>
+    </div>
+    <div class="summary-card glass card">
+      <div class="icon-chip chip-budget">🎯</div>
+      <div class="label">Budget Remaining</div>
+      <div class="value tabular" data-field="budget_remaining">₹0</div>
+    </div>
+    <div class="summary-card glass card">
+      <div class="icon-chip chip-savings">🌱</div>
+      <div class="label">Savings</div>
+      <div class="value tabular" data-field="savings">₹0</div>
+    </div>
+  </div>
+
+  <div class="quick-actions reveal">
+    <a href="{{ url_for('expense.add_expense') }}" class="btn btn-primary">+ Add Expense</a>
+    <a href="{{ url_for('income.add_income') }}" class="btn btn-glass">+ Add Income</a>
+    <a href="{{ url_for('expense.list_expenses') }}" class="btn btn-glass">View All Expenses</a>
+    <a href="{{ url_for('budget.budgets_page') }}" class="btn btn-glass">Budgets</a>
+    <a href="{{ url_for('loan.loans_page') }}" class="btn btn-glass">Loans</a>
+    <a href="{{ url_for('analytics.analytics_page') }}" class="btn btn-glass">Reports</a>
+    <a href="{{ url_for('business.business_dashboard') }}" class="btn btn-glass">Business</a>
+    <a href="{{ url_for('invoice.add_invoice') }}" class="btn btn-glass">+ New Invoice</a>
+  </div>
+
+  <section class="wheel-section reveal">
+    <div class="wheel-heading">
+      <h2>Your Expense Wheel</h2>
+      <p>Tap a category to log an expense · tap the center for your full overview</p>
+    </div>
+
+    <div class="wheel-wrap">
+      <div class="wheel-ring-decor"></div>
+      <div class="wheel-ring-decor ring-2"></div>
+      <svg id="wheel-svg" class="wheel-svg" viewBox="0 0 500 500"></svg>
+      <div class="wheel-center" id="wheel-center">
+        <div class="wheel-center-icon">🌀</div>
+        <div class="wheel-center-title">Expense<br>Tracker</div>
+        <div class="wheel-center-sub">Tap for overview</div>
+      </div>
+      <div class="wheel-tooltip" id="wheel-tooltip"></div>
+    </div>
+
+    <div class="category-chip-row" id="category-chip-row">
+      {% for cat in categories %}
+      <div class="category-chip" data-id="{{ cat.id }}">
+        <span class="dot" style="background:{{ cat.color }}"></span>
+        {{ cat.name }}
+        <button type="button" onclick="openCategoryModal({{ cat.id }}, '{{ cat.name|e }}', '{{ cat.icon }}', '{{ cat.color }}', {{ cat.monthly_budget or 0 }})" title="Edit">✎</button>
+        <button type="button" onclick="deleteCategory({{ cat.id }})" title="Delete">✕</button>
+      </div>
+      {% endfor %}
+      <div class="category-chip add-chip" onclick="openCategoryModal()">+ Add Category</div>
+    </div>
+  </section>
+
+  <section id="overview-panel" class="glass reveal">
+    <div class="flex-between">
+      <h2 style="font-size:20px;">Overview</h2>
+      <span class="text-muted" style="font-size:13px;">This month</span>
+    </div>
+    <div class="overview-grid">
+      <div>
+        <h3 style="font-size:14px; margin-bottom:8px; color:var(--ink-soft);">Recent Transactions</h3>
+        <table class="tx-table" id="tx-table">
+          <thead><tr><th>Name</th><th>Category</th><th>Date</th><th>Amount</th></tr></thead>
+          <tbody id="tx-body">
+            <tr><td colspan="4"><div class="skeleton" style="height:18px;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:14px; margin-bottom:8px; color:var(--ink-soft);">Category Breakdown</h3>
+        <div id="breakdown-list"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include "_category_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/wheel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

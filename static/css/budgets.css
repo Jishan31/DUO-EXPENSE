@@ -1,0 +1,65 @@
+.budget-hero {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+  flex-wrap: wrap;
+}
+.budget-hero-info { flex: 1; min-width: 220px; }
+.budget-hero-info h2 { font-size: 20px; margin-bottom: 6px; }
+.budget-hero-info p { font-size: 14px; }
+
+.gauge-wrap { position: relative; width: 150px; height: 150px; flex-shrink: 0; }
+.gauge-wrap svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.gauge-track { fill: none; stroke: rgba(124,92,191,0.12); stroke-width: 12; }
+.gauge-fill {
+  fill: none; stroke-width: 12; stroke-linecap: round;
+  transition: stroke-dashoffset 1s var(--ease), stroke 0.4s var(--ease);
+}
+.gauge-fill.status-ok { stroke: var(--success); }
+.gauge-fill.status-warning { stroke: var(--warning); }
+.gauge-fill.status-over { stroke: var(--danger); }
+.gauge-fill.status-none { stroke: rgba(124,92,191,0.3); }
+.gauge-label {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.gauge-label .pct { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.gauge-label .sub { font-size: 11px; color: var(--ink-soft); }
+
+.gauge-wrap.sm { width: 84px; height: 84px; }
+.gauge-wrap.sm .gauge-track, .gauge-wrap.sm .gauge-fill { stroke-width: 9; }
+.gauge-wrap.sm .pct { font-size: 14px; }
+.gauge-wrap.sm .sub { display: none; }
+
+.budget-edit-form { display: flex; gap: 10px; margin-top: 16px; max-width: 320px; }
+.budget-edit-form input { flex: 1; }
+
+.budget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.budget-card { padding: 22px; display: flex; align-items: center; gap: 16px; }
+.budget-card-info { flex: 1; min-width: 0; }
+.budget-card-info .name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.budget-card-info .name .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.budget-card-info .figures { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+.budget-card-info .figures strong { color: var(--ink); }
+.status-pill {
+  display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px;
+  border-radius: var(--r-full); margin-top: 8px;
+}
+.status-pill.status-ok { background: #E4F8EE; color: #1E7A50; }
+.status-pill.status-warning { background: #FFF3E0; color: #B4770F; }
+.status-pill.status-over { background: #FCE8EC; color: #B23A54; }
+.status-pill.status-none { background: var(--lavender-mist); color: var(--lavender-deep); }
+
+.alert-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; border-radius: var(--r-sm);
+  background: #FCE8EC; border: 1px solid #F5C1CC; color: #B23A54;
+  font-size: 13.5px; font-weight: 500; margin-bottom: 12px;
+}
+.alert-banner.warning { background: #FFF3E0; border-color: #F3D9AC; color: #8A5A0A; }

@@ -1,0 +1,70 @@
+<button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">☰</button>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+<aside class="app-sidebar glass-strong" id="app-sidebar">
+  <div class="sidebar-top">
+    <a href="{{ url_for('main.dashboard') }}" class="logo"><span class="logo-mark">D</span> Duo Expense</a>
+    <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close menu">✕</button>
+  </div>
+
+  <div class="sidebar-search" style="position:relative;">
+    <span>🔍</span>
+    <input type="text" id="global-search" placeholder="Search…" autocomplete="off">
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="{{ url_for('main.dashboard') }}" class="sidebar-link {{ 'active' if request.endpoint == 'main.dashboard' }}"><span>🏠</span> Dashboard</a>
+    <a href="{{ url_for('income.list_income') }}" class="sidebar-link {{ 'active' if request.blueprint == 'income' }}"><span>💰</span> Income</a>
+    <a href="{{ url_for('budget.budgets_page') }}" class="sidebar-link {{ 'active' if request.blueprint == 'budget' }}"><span>🎯</span> Budgets</a>
+    <a href="{{ url_for('loan.loans_page') }}" class="sidebar-link {{ 'active' if request.blueprint == 'loan' }}"><span>🏦</span> Loans</a>
+    <a href="{{ url_for('analytics.analytics_page') }}" class="sidebar-link {{ 'active' if request.blueprint == 'analytics' }}"><span>📊</span> Reports</a>
+    <div style="height:1px; background:var(--surface-soft-border); margin:8px 4px;"></div>
+    <a href="{{ url_for('business.business_dashboard') }}" class="sidebar-link {{ 'active' if request.blueprint == 'business' }}"><span>📦</span> Business</a>
+    <a href="{{ url_for('client.clients_page') }}" class="sidebar-link {{ 'active' if request.blueprint == 'client' }}"><span>🧑‍💼</span> Clients</a>
+    <a href="{{ url_for('invoice.invoices_page') }}" class="sidebar-link {{ 'active' if request.blueprint == 'invoice' }}"><span>🧾</span> Invoices</a>
+    <a href="{{ url_for('filing.my_filing_projects') }}" class="sidebar-link {{ 'active' if request.blueprint == 'filing' }}"><span>🧑‍⚖️</span> IT Filing</a>
+  </nav>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="sidebar-bottom">
+    <a href="{{ url_for('main.contact') }}" class="icon-btn" title="Contact / Support" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">💬</a>
+    <button class="icon-btn theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    <button class="icon-btn" id="notif-bell" title="Notifications">🔔<span class="badge-dot" id="notif-badge" style="display:none;"></span></button>
+    <a href="{{ url_for('auth.account') }}" class="avatar-btn" id="profile-btn" title="{{ current_user.username }} — Account Settings" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">{{ current_user.username[0]|upper }}</a>
+  </div>
+  <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm btn-block mt-16">Logout</a>
+</aside>
+
+<!-- Rendered outside .app-sidebar on purpose: the sidebar uses `transform`
+     for its mobile slide-in drawer, which would otherwise turn it into the
+     containing block for any position:fixed descendant and break the
+     viewport-relative positioning these panels rely on. -->
+<div class="notif-dropdown glass-strong" id="notif-dropdown">
+  <h4>Notifications</h4>
+  <div id="notif-list"><div class="notif-empty">Loading…</div></div>
+</div>
+<div class="search-results-dropdown glass-strong" id="search-results"></div>
+
+<button class="chat-fab" id="chat-fab" aria-label="Open AI Assistant" title="Ask the assistant">💬</button>
+<div class="chat-panel glass-strong" id="chat-panel">
+  <div class="chat-panel-header">
+    <div class="chat-panel-title">💬 Duo Assistant</div>
+    <div style="display:flex; gap:6px;">
+      <button class="chat-icon-btn" id="chat-clear-btn" title="Clear conversation">🗑️</button>
+      <button class="chat-icon-btn" id="chat-close-btn" title="Close" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-empty">Ask me about your spending, budgets, loans, or how to use any feature.</div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Ask something…" autocomplete="off" maxlength="2000">
+    <button id="chat-send-btn" class="btn btn-primary btn-sm">Send</button>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+<script src="{{ url_for('static', filename='js/assistant.js') }}"></script>

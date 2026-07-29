@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+venv/
+env/
+.venv/
+
+# Flask / instance data
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded receipts (user data, shouldn't be committed)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Temp CSV uploads during dataset import (deleted after processing, but exclude just in case)
+instance/tmp_imports/
+
+# Environment / secrets
+.env
+.flaskenv
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

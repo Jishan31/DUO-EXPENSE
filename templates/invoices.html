@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Invoices — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal">
+    <div>
+      <h1>Invoices</h1>
+      <p>{{ invoices|length }} invoice{{ 's' if invoices|length != 1 else '' }} total</p>
+    </div>
+    <a href="{{ url_for('invoice.add_invoice') }}" class="btn btn-primary">+ New Invoice</a>
+  </div>
+
+  <div class="biz-summary-row reveal">
+    <div class="biz-summary-card glass"><div class="label">Total Billed</div><div class="value tabular">₹{{ '{:,.0f}'.format(total_billed) }}</div></div>
+    <div class="biz-summary-card glass"><div class="label">Total Pending</div><div class="value tabular {{ 'warn' if total_pending > 0 }}">₹{{ '{:,.0f}'.format(total_pending) }}</div></div>
+  </div>
+
+  {% if not invoices %}
+  <div class="glass card reveal" style="text-align:center; padding:50px 20px;">
+    <div style="font-size:36px; margin-bottom:10px;">🧾</div>
+    <h3 style="margin-bottom:8px;">No invoices yet</h3>
+    <p class="text-muted">Add a client first, then create their first invoice.</p>
+    <a href="{{ url_for('invoice.add_invoice') }}" class="btn btn-primary mt-16" style="display:inline-flex;">+ New Invoice</a>
+  </div>
+  {% else %}
+  <div class="glass reveal" style="padding:10px 4px;">
+    <div class="invoice-table-wrap">
+      <table class="tx-table" style="min-width:680px; width:100%;">
+        <thead><tr><th>Invoice #</th><th>Client</th><th>Date</th><th>Status</th><th>Total</th><th>Balance Due</th></tr></thead>
+        <tbody>
+          {% for inv in invoices %}
+          <tr style="cursor:pointer;" onclick="window.location='{{ url_for('invoice.invoice_detail', invoice_id=inv.id) }}'">
+            <td>{{ inv.invoice_number }}</td>
+            <td>{{ inv.client.name }}</td>
+            <td>{{ inv.issue_date.strftime('%b %d, %Y') }}</td>
+            <td><span class="invoice-status-pill {{ inv.status }}">{{ inv.status }}</span></td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(inv.total_amount) }}</td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(inv.balance_due()) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

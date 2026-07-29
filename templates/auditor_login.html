@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Auditor Login — Duo Expense{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+  <a href="{{ url_for('main.landing') }}" class="auth-back">← Back to home</a>
+
+  <div class="auth-card glass-strong">
+    <div class="auth-orb">🧾</div>
+    <h1>Auditor Login</h1>
+    <p class="auth-sub">This is a separate account from a regular Duo Expense login — use the username/password you set up when you registered as an auditor.</p>
+
+    <form method="POST" action="{{ url_for('auditor.auditor_login') }}">
+      <div class="field">
+        <label for="identifier">Username or Email</label>
+        <input type="text" id="identifier" name="identifier" placeholder="you@example.com" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+      <p style="text-align:right; margin:-8px 0 14px;"><a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Forgot password?</a></p>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Log In as Auditor</button>
+    </form>
+
+    <p class="auth-footer-link">Don't have an auditor account yet? <a href="{{ url_for('auditor.auditor_register') }}">Register here</a></p>
+    <p class="auth-footer-link">Looking for your regular account? <a href="{{ url_for('auth.login') }}">Log in here instead</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ client.name }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <a href="{{ url_for('client.clients_page') }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to clients</a>
+
+  <div class="glass-strong card reveal" style="padding:28px;">
+    <div class="flex-between" style="align-items:flex-start; flex-wrap:wrap; gap:16px;">
+      <div class="flex" style="gap:14px; align-items:center;">
+        <div class="client-avatar" style="width:56px; height:56px; font-size:22px;">{{ client.name[0]|upper }}</div>
+        <div>
+          <h1 style="font-size:22px;">{{ client.name }}</h1>
+          <p class="text-muted mt-8">{{ client.phone or '—' }} {{ '· ' + client.email if client.email }}</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="{{ url_for('invoice.add_invoice', client_id=client.id) }}" class="btn btn-primary btn-sm">+ New Invoice</a>
+        <a href="{{ url_for('client.edit_client', client_id=client.id) }}" class="btn btn-glass btn-sm">Edit</a>
+        <form method="POST" action="{{ url_for('client.delete_client', client_id=client.id) }}" onsubmit="return confirm('Delete this client and all their invoices?');">
+          <button type="submit" class="btn btn-ghost btn-sm">Delete</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="biz-summary-row mt-24" style="margin-bottom:0;">
+      <div class="biz-summary-card glass"><div class="label">Total Billed</div><div class="value tabular">₹{{ '{:,.0f}'.format(client.total_billed()) }}</div></div>
+      <div class="biz-summary-card glass"><div class="label">Total Paid</div><div class="value tabular text-success">₹{{ '{:,.0f}'.format(client.total_paid()) }}</div></div>
+      <div class="biz-summary-card glass"><div class="label">Pending</div><div class="value tabular {{ 'text-danger' if client.total_pending() > 0 }}">₹{{ '{:,.0f}'.format(client.total_pending()) }}</div></div>
+    </div>
+
+    {% if client.notes %}<p class="text-muted mt-24" style="font-size:13.5px;">📝 {{ client.notes }}</p>{% endif %}
+  </div>
+
+  <div class="glass card mt-24 reveal">
+    <h3 style="font-size:16px; margin-bottom:14px;">Invoice History</h3>
+    {% if not client.invoices %}
+    <p class="text-muted" style="padding:20px 0; text-align:center;">No invoices yet for this client.</p>
+    {% else %}
+    <div class="invoice-table-wrap">
+      <table class="tx-table" style="min-width:560px; width:100%;">
+        <thead><tr><th>Invoice #</th><th>Date</th><th>Status</th><th>Total</th><th>Balance Due</th></tr></thead>
+        <tbody>
+          {% for inv in client.invoices %}
+          <tr style="cursor:pointer;" onclick="window.location='{{ url_for('invoice.invoice_detail', invoice_id=inv.id) }}'">
+            <td>{{ inv.invoice_number }}</td>
+            <td>{{ inv.issue_date.strftime('%b %d, %Y') }}</td>
+            <td><span class="invoice-status-pill {{ inv.status }}">{{ inv.status }}</span></td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(inv.total_amount) }}</td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(inv.balance_due()) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

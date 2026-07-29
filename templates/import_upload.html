@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Upload Dataset — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="form-page-wrap">
+    <a href="{{ url_for('import_data.imports_page') }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to imports</a>
+
+    <div class="form-panel glass-strong reveal">
+      <h1 style="font-size:22px; margin-bottom:4px;">Upload a Dataset</h1>
+      <p class="text-muted mt-8" style="margin-bottom:24px;">
+        Upload a CSV export — a bank statement, another app's export, or a spreadsheet you made
+        yourself. On the next screen you'll confirm which columns are which, and preview the
+        first few rows, before anything gets saved.
+      </p>
+
+      <form method="POST" action="{{ url_for('import_data.upload') }}" enctype="multipart/form-data">
+        <div class="upload-drop" onclick="document.getElementById('dataset-input').click()">
+          <div id="upload-idle">
+            📄 <strong>Click to choose a CSV file</strong>
+            <div class="field-hint">Column names like "Date", "Amount", "Debit", "Description", "Narration" are matched automatically.</div>
+          </div>
+          <div id="upload-filename" class="field-hint" style="display:none; font-weight:600; color:var(--ink);"></div>
+          <input type="file" id="dataset-input" name="dataset" accept=".csv" style="display:none;" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block mt-16">Continue</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('dataset-input').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('upload-idle').style.display = 'none';
+    const fn = document.getElementById('upload-filename');
+    fn.textContent = '✅ ' + file.name;
+    fn.style.display = 'block';
+  });
+</script>
+{% endblock %}

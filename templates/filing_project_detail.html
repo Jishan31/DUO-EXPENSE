@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell" style="max-width:760px;">
+  <a href="{{ url_for('filing.my_filing_projects') }}" style="font-size:13px; color:var(--lavender-deep); font-weight:600;">← All filing projects</a>
+
+  <div class="glass card reveal" style="padding:24px 28px; margin:16px 0 24px;">
+    <div class="flex-between" style="align-items:flex-start;">
+      <div>
+        <h1 style="font-size:20px; margin-bottom:6px;">{{ project.title }}</h1>
+        <p class="text-muted" style="font-size:13px;">
+          {{ project.period_start.strftime('%d %b %Y') }} – {{ project.period_end.strftime('%d %b %Y') }}
+          · Bids {{ 'closed' if project.bid_deadline_passed() else 'close' }} {{ project.bid_deadline.strftime('%d %b %Y') }}
+        </p>
+      </div>
+      <span class="invoice-status-pill {{ 'paid' if project.status == 'completed' else ('unpaid' if project.status == 'open' else ('draft' if project.status == 'awarded' else 'cancelled')) }}">{{ project.status }}</span>
+    </div>
+    {% if project.description %}<p style="font-size:13.5px; margin-top:12px;">{{ project.description }}</p>{% endif %}
+    <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+      {% if project.status == 'open' %}
+      <a href="{{ url_for('filing.edit_filing_project', project_id=project.id) }}" class="btn btn-secondary btn-sm">Edit Project</a>
+      {% endif %}
+      <a href="{{ url_for('filing.download_report', project_id=project.id) }}" class="btn btn-secondary btn-sm">⬇ Download Full Expense Report</a>
+    </div>
+  </div>
+
+  {% if project.status == 'awarded' or project.status == 'completed' %}
+  <div class="glass card reveal" style="padding:20px 24px; margin-bottom:24px; border:1.5px solid var(--success);">
+    <h3 style="font-size:14.5px; margin-bottom:10px;">✅ Awarded to {{ project.winning_bid.auditor.username }}</h3>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; font-size:13px;">
+      <div><div class="text-muted" style="font-size:11px;">Winning Bid</div><div style="font-weight:700;">₹{{ '{:,.0f}'.format(project.winning_bid.amount) }}</div></div>
+      <div><div class="text-muted" style="font-size:11px;">Platform Fee ({{ project.platform_fee_percent|int }}%)</div><div style="font-weight:700;">₹{{ '{:,.0f}'.format(project.winning_bid.platform_commission()) }}</div></div>
+      <div><div class="text-muted" style="font-size:11px;">Auditor Payout</div><div style="font-weight:700;">₹{{ '{:,.0f}'.format(project.winning_bid.auditor_payout()) }}</div></div>
+    </div>
+    {% if project.status == 'awarded' %}
+    <form method="POST" action="{{ url_for('filing.mark_complete', project_id=project.id) }}" style="margin-top:14px;">
+      <button type="submit" class="btn btn-primary btn-sm">Mark as Completed</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <h3 style="font-size:14.5px; margin-bottom:12px;">Bids ({{ bids|length }})</h3>
+  {% if bids %}
+  <div style="display:grid; gap:10px;">
+    {% for b in bids %}
+    <div class="glass card reveal" style="padding:14px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; {{ 'border:1.5px solid var(--success);' if b.status == 'won' else '' }}">
+      <div>
+        <div style="font-weight:700; font-size:13.5px;">
+          {{ b.auditor.username }}{% if b.auditor.auditor_qualification %} <span class="text-muted" style="font-weight:400;">· {{ b.auditor.auditor_qualification }}</span>{% endif %}
+          {% if loop.first and project.status == 'open' %}<span style="color:var(--success); font-size:11px; font-weight:700;"> · LOWEST</span>{% endif %}
+        </div>
+        {% if b.message %}<div class="text-muted" style="font-size:12px; margin-top:2px;">{{ b.message }}</div>{% endif %}
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="tabular" style="font-weight:700; font-size:14px;">₹{{ '{:,.0f}'.format(b.amount) }}</div>
+        {% if project.status == 'open' and loop.first %}
+        <form method="POST" action="{{ url_for('filing.award_bid', project_id=project.id, bid_id=b.id) }}">
+          <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Award this project to {{ b.auditor.username }} for ₹{{ '%.0f'|format(b.amount) }}?')">Accept Now</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted" style="font-size:13px;">No bids yet — this project is visible to auditors on their dashboard now. Auditors bid using their own separate account; you won't see a bid option here since you're the one who posted this project.</p>
+  {% endif %}
+
+  {% if project.status == 'open' %}
+  <form method="POST" action="{{ url_for('filing.cancel_project', project_id=project.id) }}" style="margin-top:20px;">
+    <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Cancel this filing project?')">Cancel Project</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+{% endblock %}

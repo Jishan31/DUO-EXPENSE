@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Confirm Columns — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head reveal">
+    <h1>Confirm Columns</h1>
+    <p>{{ original_filename }} — {{ total_rows }} row{{ 's' if total_rows != 1 }} found. Match each field to a column, then review the preview below before importing.</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('import_data.confirm') }}">
+    <input type="hidden" name="token" value="{{ token }}">
+
+    <div class="glass card reveal" style="padding:22px 26px; margin-bottom:20px;">
+      <div class="field">
+        <label for="batch_name">Name this import (optional)</label>
+        <input type="text" id="batch_name" name="batch_name" placeholder="{{ original_filename }}">
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-top:6px;">
+        <div class="field">
+          <label for="date_col">Date column</label>
+          <select id="date_col" name="date_col">
+            <option value="">— none —</option>
+            {% for h in headers %}
+            <option value="{{ h }}" {{ 'selected' if h == mapping.get('date') }}>{{ h }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="amount_col">Amount column <span class="text-muted">(required)</span></label>
+          <select id="amount_col" name="amount_col" required>
+            <option value="">— choose —</option>
+            {% for h in headers %}
+            <option value="{{ h }}" {{ 'selected' if h == mapping.get('amount') }}>{{ h }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="desc_col">Description column <span class="text-muted">(required)</span></label>
+          <select id="desc_col" name="desc_col" required>
+            <option value="">— choose —</option>
+            {% for h in headers %}
+            <option value="{{ h }}" {{ 'selected' if h == mapping.get('description') }}>{{ h }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="category_col">Category column (optional)</label>
+          <select id="category_col" name="category_col">
+            <option value="">— none —</option>
+            {% for h in headers %}
+            <option value="{{ h }}" {{ 'selected' if h == mapping.get('category') }}>{{ h }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="default_category_id">Fallback category</label>
+          <select id="default_category_id" name="default_category_id">
+            {% for c in categories %}
+            <option value="{{ c.id }}" {{ 'selected' if c.name.lower() == 'others' }}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <p class="field-hint">Used when a row's category can't be matched or guessed.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass reveal" style="padding:10px 4px; margin-bottom:20px;">
+      <div style="padding:12px 20px 4px;"><h3 style="font-size:14px;">Preview (first {{ preview_rows|length }} rows)</h3></div>
+      <div class="invoice-table-wrap">
+        <table class="tx-table" style="min-width:520px; width:100%;">
+          <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+          <tbody>
+            {% for row in preview_rows %}
+            <tr>{% for h in headers %}<td>{{ row.get(h, '') }}</td>{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <a href="{{ url_for('import_data.upload') }}" class="btn btn-secondary">← Choose a different file</a>
+      <button type="submit" class="btn btn-primary">Import {{ total_rows }} Row{{ 's' if total_rows != 1 }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+{% endblock %}

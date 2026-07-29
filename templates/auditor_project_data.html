@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} — Client Data{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="app-shell" style="margin-left:0; padding:28px 32px;">
+  <a href="{{ url_for('auditor.auditor_dashboard') }}" style="font-size:13px; color:var(--lavender-deep); font-weight:600;">← Back to dashboard</a>
+
+  <div class="page-head reveal" style="margin:16px 0 24px;">
+    <h1>{{ project.title }}</h1>
+    <p>Read-only data for {{ project.period_start.strftime('%d %b %Y') }} – {{ project.period_end.strftime('%d %b %Y') }} — shared for this filing project only.</p>
+    <a href="{{ url_for('auditor.download_client_report', project_id=project.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px; display:inline-block;">⬇ Download Full Report PDF</a>
+  </div>
+
+  <h3 style="font-size:14.5px; margin-bottom:12px;">Expenses ({{ expenses|length }})</h3>
+  {% if expenses %}
+  <table class="tx-table" style="width:100%; margin-bottom:28px;">
+    <thead><tr><th>Date</th><th>Name</th><th>Category</th><th>Merchant</th><th>Amount</th><th>GST</th></tr></thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td>{{ e.date.strftime('%d %b %Y') }}</td>
+        <td>{{ e.name }}</td>
+        <td>{{ e.category.name if e.category else '—' }}</td>
+        <td>{{ e.merchant or '—' }}</td>
+        <td class="tabular">₹{{ '{:,.2f}'.format(e.amount) }}</td>
+        <td class="tabular">₹{{ '{:,.2f}'.format(e.gst_amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted" style="font-size:13px; margin-bottom:28px;">No expenses recorded in this period.</p>
+  {% endif %}
+
+  <h3 style="font-size:14.5px; margin-bottom:12px;">Income ({{ incomes|length }})</h3>
+  {% if incomes %}
+  <table class="tx-table" style="width:100%;">
+    <thead><tr><th>Date</th><th>Source</th><th>Name</th><th>Amount</th></tr></thead>
+    <tbody>
+      {% for i in incomes %}
+      <tr>
+        <td>{{ i.date.strftime('%d %b %Y') }}</td>
+        <td>{{ i.source }}</td>
+        <td>{{ i.name }}</td>
+        <td class="tabular">₹{{ '{:,.2f}'.format(i.amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted" style="font-size:13px;">No income recorded in this period.</p>
+  {% endif %}
+</div>
+{% endblock %}

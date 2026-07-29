@@ -1,0 +1,54 @@
+.loan-summary-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+.loan-summary-card { padding: 22px; }
+.loan-summary-card .label { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.loan-summary-card .value { font-family: var(--font-display); font-size: 26px; margin-top: 8px; }
+
+.loan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.loan-card { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.loan-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.loan-type-badge {
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--r-full);
+  background: var(--lavender-mist); color: var(--lavender-deep);
+}
+.loan-card h3 { font-size: 17px; }
+.loan-card .lender { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+
+.loan-progress-track { height: 8px; border-radius: 5px; background: rgba(124,92,191,0.1); overflow: hidden; }
+.loan-progress-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--lavender), var(--lavender-deep)); transition: width 1s var(--ease); }
+.loan-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+
+.loan-emi-row { display: flex; align-items: center; justify-content: space-between; }
+.loan-emi-row .emi-value { font-family: var(--font-display); font-size: 19px; }
+.loan-emi-row .emi-label { font-size: 11.5px; color: var(--ink-soft); }
+
+.due-badge { font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: var(--r-full); display: inline-block; }
+.due-badge.ok { background: #E4F8EE; color: #1E7A50; }
+.due-badge.soon { background: #FFF3E0; color: #B4770F; }
+.due-badge.overdue { background: #FCE8EC; color: #B23A54; }
+.due-badge.closed { background: var(--lavender-mist); color: var(--lavender-deep); }
+
+/* EMI calculator preview on the add-loan form */
+.emi-preview { padding: 22px; margin-top: 4px; }
+.emi-preview .headline { font-family: var(--font-display); font-size: 30px; color: var(--lavender-deep); }
+.emi-preview .headline span { font-size: 14px; color: var(--ink-soft); font-family: var(--font-body); font-weight: 500; }
+.emi-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+.emi-preview-grid .stat-label { font-size: 11.5px; color: var(--ink-soft); }
+.emi-preview-grid .stat-value { font-size: 15px; font-weight: 700; margin-top: 4px; }
+
+/* Loan detail page */
+.loan-detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.loan-gauge-row { display: flex; gap: 24px; flex-wrap: wrap; margin: 22px 0; }
+.loan-gauge-item { display: flex; align-items: center; gap: 14px; }
+.loan-gauge-item .fig { }
+.loan-gauge-item .fig .val { font-family: var(--font-display); font-size: 18px; }
+.loan-gauge-item .fig .lbl { font-size: 12px; color: var(--ink-soft); }
+
+.schedule-table-wrap { overflow-x: auto; }
+.schedule-row-paid { opacity: 0.55; }
+.pay-form { display: flex; gap: 6px; align-items: center; }
+.pay-form select, .pay-form input[type="date"] { padding: 6px 8px; font-size: 12px; border-radius: 8px; border: 1px solid var(--surface-soft-border); background: var(--surface-soft); color: var(--ink); }
+
+@media (max-width: 640px) {
+  .loan-summary-row { grid-template-columns: 1fr; }
+  .emi-preview-grid { grid-template-columns: 1fr 1fr; }
+}

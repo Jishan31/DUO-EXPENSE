@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}GST Filing — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal" style="flex-wrap:wrap; gap:14px;">
+    <div>
+      <h1>GST Filing Summary</h1>
+      <p>Output GST from sales, input GST from purchases, computed live for the period below.</p>
+    </div>
+    <a href="{{ url_for('business.gst_filing_pdf', start=start_date.isoformat(), end=end_date.isoformat()) }}" class="btn btn-primary">⬇ Download PDF</a>
+  </div>
+
+  <form method="GET" class="glass card reveal" style="margin-bottom:24px; padding:18px 24px; display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;">
+    <div>
+      <label style="font-size:12px; color:var(--ink-soft); display:block; margin-bottom:4px;">From</label>
+      <input type="date" name="start" value="{{ start_date.isoformat() }}" style="padding:9px 12px; border-radius:10px; border:1.5px solid var(--surface-soft-border); background:var(--surface-soft); color:var(--ink); font-size:13px;">
+    </div>
+    <div>
+      <label style="font-size:12px; color:var(--ink-soft); display:block; margin-bottom:4px;">To</label>
+      <input type="date" name="end" value="{{ end_date.isoformat() }}" style="padding:9px 12px; border-radius:10px; border:1.5px solid var(--surface-soft-border); background:var(--surface-soft); color:var(--ink); font-size:13px;">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm">Update</button>
+    {% if not current_user.business_gstin %}
+      <span class="text-muted" style="font-size:12px;">Tip: add your GSTIN in <a href="{{ url_for('business.business_dashboard') }}">Business settings</a> so it appears on the PDF.</span>
+    {% endif %}
+  </form>
+
+  <div class="biz-summary-grid" style="margin-bottom:24px;">
+    <div class="biz-summary-card glass"><div class="label">Output GST (collected)</div><div class="value tabular">₹{{ '{:,.2f}'.format(summary.output_gst) }}</div></div>
+    <div class="biz-summary-card glass"><div class="label">Input GST (paid)</div><div class="value tabular">₹{{ '{:,.2f}'.format(summary.input_gst) }}</div></div>
+    <div class="biz-summary-card glass {{ 'warn' if summary.net_payable > 0 }}">
+      <div class="label">{{ 'Net Payable' if summary.net_payable >= 0 else 'Net Refundable / Carried Forward' }}</div>
+      <div class="value tabular">₹{{ '{:,.2f}'.format(summary.net_payable|abs) }}</div>
+    </div>
+  </div>
+
+  <div class="glass card reveal" style="margin-bottom:24px; padding:20px 24px;">
+    <h3 style="font-size:14.5px; margin-bottom:14px;">Output GST — Sales ({{ summary.invoices|length }})</h3>
+    {% if summary.invoices %}
+    <table class="tx-table" style="width:100%;">
+      <thead><tr><th>Date</th><th>Invoice #</th><th>Taxable Value</th><th>GST</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for i in summary.invoices %}
+        <tr>
+          <td>{{ i.issue_date.strftime('%d %b %Y') }}</td>
+          <td>{{ i.invoice_number }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(i.subtotal - i.discount_amount) }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(i.gst_amount) }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(i.total_amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted" style="font-size:13px;">No GST-bearing invoices in this period.</p>
+    {% endif %}
+  </div>
+
+  <div class="glass card reveal" style="margin-bottom:24px; padding:20px 24px;">
+    <h3 style="font-size:14.5px; margin-bottom:14px;">Input GST — Purchases ({{ summary.expenses|length }})</h3>
+    {% if summary.expenses %}
+    <table class="tx-table" style="width:100%;">
+      <thead><tr><th>Date</th><th>Expense</th><th>Merchant</th><th>Taxable Value</th><th>GST</th></tr></thead>
+      <tbody>
+        {% for e in summary.expenses %}
+        <tr>
+          <td>{{ e.date.strftime('%d %b %Y') }}</td>
+          <td>{{ e.name }}</td>
+          <td>{{ e.merchant or '—' }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(e.amount - e.gst_amount) }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(e.gst_amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted" style="font-size:13px;">No GST-bearing expenses in this period.</p>
+    {% endif %}
+  </div>
+
+  <p class="text-muted" style="font-size:11.5px; max-width:700px;">
+    This is a reference summary generated from your recorded data, not an official government filing form.
+    Verify all figures — especially CGST/SGST/IGST splits and any reverse-charge or exempt items — before
+    filing GSTR-1/GSTR-3B, ideally with a tax professional.
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+{% endblock %}

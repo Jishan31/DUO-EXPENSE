@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Auditor Dashboard — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="app-shell" style="margin-left:0; padding:28px 32px;">
+  <div class="page-head flex-between reveal" style="margin-bottom:24px;">
+    <div>
+      <h1>Auditor Portal</h1>
+      <p>Signed in as {{ current_user.username }}{% if current_user.auditor_qualification %} · {{ current_user.auditor_qualification }}{% endif %}</p>
+    </div>
+    <a href="{{ url_for('main.contact') }}" class="btn btn-secondary" style="margin-right:8px;">Contact / Support</a>
+    <a href="{{ url_for('auditor.auditor_account') }}" class="btn btn-secondary" style="margin-right:8px;">Account Settings</a>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">Logout</a>
+  </div>
+
+  <h3 style="font-size:15px; margin-bottom:12px;">Open Filing Projects ({{ open_projects|length }})</h3>
+  {% if open_projects %}
+  <div style="display:grid; gap:12px; margin-bottom:32px;">
+    {% for p in open_projects %}
+    <div class="glass card reveal" style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="font-weight:700; font-size:14px;">{{ p.title }}</div>
+        <div class="text-muted" style="font-size:12px; margin-top:2px;">
+          Period {{ p.period_start.strftime('%d %b %Y') }} – {{ p.period_end.strftime('%d %b %Y') }}
+          · Bids close {{ p.bid_deadline.strftime('%d %b %Y') }}
+          {% set lb = p.lowest_bid() %}
+          · {{ 'Lowest bid so far: ₹%.0f'|format(lb.amount) if lb else 'No bids yet' }}
+        </div>
+      </div>
+      <a href="{{ url_for('auditor.project_detail', project_id=p.id) }}" class="btn btn-primary btn-sm">View &amp; Bid</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted" style="font-size:13px; margin-bottom:32px;">No open filing projects right now — check back soon.</p>
+  {% endif %}
+
+  <h3 style="font-size:15px; margin-bottom:12px;">Won Projects ({{ won_projects|length }})</h3>
+  {% if won_projects %}
+  <div style="display:grid; gap:12px; margin-bottom:32px;">
+    {% for p in won_projects %}
+    <div class="glass card reveal" style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="font-weight:700; font-size:14px;">{{ p.title }}</div>
+        <div class="text-muted" style="font-size:12px; margin-top:2px;">Your payout: ₹{{ '%.0f'|format(p.winning_bid.auditor_payout()) }} (after platform fee)</div>
+      </div>
+      <a href="{{ url_for('auditor.project_data', project_id=p.id) }}" class="btn btn-secondary btn-sm">View Client Data</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted" style="font-size:13px; margin-bottom:32px;">No won projects yet.</p>
+  {% endif %}
+
+  <h3 style="font-size:15px; margin-bottom:12px;">My Bids ({{ my_bids|length }})</h3>
+  {% if my_bids %}
+  <table class="tx-table" style="width:100%;">
+    <thead><tr><th>Project</th><th>Amount</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for b in my_bids %}
+      <tr>
+        <td><a href="{{ url_for('auditor.project_detail', project_id=b.filing_project_id) }}">{{ b.project.title }}</a></td>
+        <td class="tabular">₹{{ '%.0f'|format(b.amount) }}</td>
+        <td><span class="bid-status-pill {{ b.status }}">{{ b.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted" style="font-size:13px;">You haven't placed any bids yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

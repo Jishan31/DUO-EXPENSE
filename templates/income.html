@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Income — Duo Expense{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal">
+    <div>
+      <h1>Income History</h1>
+      <p>{{ incomes|length }} entr{{ 'ies' if incomes|length != 1 else 'y' }} recorded</p>
+    </div>
+    <a href="{{ url_for('income.add_income') }}" class="btn btn-primary">+ Add Income</a>
+  </div>
+
+  <div class="glass reveal" style="padding:10px 4px;">
+    <table class="tx-table" style="min-width:560px; width:100%;">
+      <thead>
+        <tr><th>Description</th><th>Source</th><th>Date</th><th>Amount</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for i in incomes %}
+        <tr>
+          <td>{{ i.name }}</td>
+          <td>{{ i.source }}</td>
+          <td>{{ i.date.strftime('%b %d, %Y') }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(i.amount) }}</td>
+          <td><a href="{{ url_for('income.edit_income', income_id=i.id) }}" class="btn btn-ghost btn-sm">Edit</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="tx-empty">No income logged yet — <a href="{{ url_for('income.add_income') }}">add your first entry</a>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

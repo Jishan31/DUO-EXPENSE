@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}IT Filing — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal">
+    <div>
+      <h1>IT Filing Projects</h1>
+      <p>Post your filing period for auditors to bid on — lowest bid wins.</p>
+    </div>
+    <a href="{{ url_for('filing.new_filing_project') }}" class="btn btn-primary">+ New Filing Project</a>
+  </div>
+
+  {% if projects %}
+  <div style="display:grid; gap:12px; margin-top:20px;">
+    {% for p in projects %}
+    <a href="{{ url_for('filing.project_detail', project_id=p.id) }}" class="glass card reveal" style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; text-decoration:none;">
+      <div>
+        <div style="font-weight:700; font-size:14px; color:var(--ink);">{{ p.title }}</div>
+        <div class="text-muted" style="font-size:12px; margin-top:2px;">
+          {{ p.period_start.strftime('%d %b %Y') }} – {{ p.period_end.strftime('%d %b %Y') }} · {{ p.bids|length }} bid(s)
+        </div>
+      </div>
+      <span class="invoice-status-pill {{ 'paid' if p.status == 'completed' else ('unpaid' if p.status == 'open' else ('draft' if p.status == 'awarded' else 'cancelled')) }}">{{ p.status }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="glass card reveal" style="padding:40px; text-align:center; margin-top:20px;">
+    <p class="text-muted" style="font-size:13.5px;">No filing projects yet. Post one and auditors will start bidding.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+{% endblock %}

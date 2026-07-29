@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if expense else 'Add' }} Expense — Duo Expense{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="form-page-wrap">
+    <a href="{{ url_for('main.dashboard') }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to dashboard</a>
+
+    <div class="form-panel glass-strong reveal">
+      <h1 style="font-size:22px; margin-bottom:4px;">{{ 'Edit Expense' if expense else 'Add Expense' }}</h1>
+      <p class="text-muted mt-8" style="margin-bottom:24px;">{{ 'Update the details below.' if expense else 'Pick a category and fill in the details — it takes seconds.' }}</p>
+
+      <div class="upload-drop mt-16" id="upload-drop" style="margin-bottom:24px;" onclick="document.getElementById('receipt-input').click()">
+        <div id="upload-drop-idle">
+          📷 <strong>Scan a bill</strong> or upload a receipt to auto-fill this form
+          <div class="field-hint">JPG, PNG or WEBP · Duo Expense reads the merchant, amount, GST, and date for you</div>
+        </div>
+        <div id="upload-drop-loading" style="display:none;">
+          <div class="skeleton" style="height:16px; width:60%; margin:0 auto 8px;"></div>
+          <div class="field-hint">Reading your bill…</div>
+        </div>
+        <input type="file" id="receipt-input" accept="image/*" capture="environment" style="display:none;">
+      </div>
+      <div id="receipt-preview-wrap" style="display:none; margin-bottom:20px;">
+        <img id="receipt-preview-img" style="max-height:160px; border-radius:12px; box-shadow:var(--glass-shadow);" alt="Receipt preview">
+      </div>
+      <div id="ocr-items-wrap" style="display:none; margin-bottom:20px;" class="glass" style="padding:14px;">
+        <div style="font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:8px;">Detected items</div>
+        <div id="ocr-items-list" style="font-size:13px;"></div>
+      </div>
+      <div id="ocr-warning" class="field-hint" style="display:none; color:var(--warning); margin-bottom:16px;"></div>
+
+      <form method="POST" id="expense-form">
+        <input type="hidden" name="receipt_path" id="receipt_path" value="{{ expense.receipt_path if expense else '' }}">
+        <label style="font-size:13px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:10px;">Category</label>
+        <div class="category-picker">
+          {% for cat in categories %}
+          <label class="category-pick-item {{ 'selected' if cat.id == preselected_category }}">
+            <input type="radio" name="category_id" value="{{ cat.id }}" {{ 'checked' if cat.id == preselected_category }}
+                   onclick="document.querySelectorAll('.category-pick-item').forEach(el=>el.classList.remove('selected')); this.closest('.category-pick-item').classList.add('selected');">
+            <span class="icon">{{ {'utensils':'🍽️','plane':'✈️','bag':'🛍️','film':'🎬','fuel':'⛽','book':'📚','cross':'➕','receipt':'🧾','calendar':'📅','dots':'⋯','home':'🏠','tech':'💻','tag':'🏷️'}.get(cat.icon, '🏷️') }}</span>
+            {{ cat.name }}
+          </label>
+          {% endfor %}
+        </div>
+        <div id="category-required-hint" class="field-hint" style="display:none; color:var(--danger); margin:-12px 0 16px;">Please choose a category above.</div>
+
+        <div class="field">
+          <label for="name">Expense Name</label>
+          <input type="text" id="name" name="name" placeholder="e.g. Groceries at BigBasket" value="{{ expense.name if expense else '' }}" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="amount">Amount (₹)</label>
+            <input type="number" id="amount" name="amount" min="0" step="0.01" placeholder="0.00" value="{{ expense.amount if expense else '' }}" required>
+          </div>
+          <div class="field">
+            <label for="gst_amount">GST (optional)</label>
+            <input type="number" id="gst_amount" name="gst_amount" min="0" step="0.01" placeholder="0.00" value="{{ expense.gst_amount if expense else '' }}">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" value="{{ expense.date if expense else '' }}" required>
+          </div>
+          <div class="field">
+            <label for="time">Time</label>
+            <input type="time" id="time" name="time">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Payment Mode</label>
+          <div class="payment-pill-row">
+            {% for mode in ['Cash', 'UPI', 'Debit Card', 'Credit Card', 'Bank Transfer'] %}
+            <label class="payment-pill {{ 'selected' if (expense and expense.payment_mode == mode) or (not expense and mode == 'UPI') }}">
+              <input type="radio" name="payment_mode" value="{{ mode }}" {{ 'checked' if (expense and expense.payment_mode == mode) or (not expense and mode == 'UPI') }}
+                     onclick="document.querySelectorAll('.payment-pill').forEach(el=>el.classList.remove('selected')); this.closest('.payment-pill').classList.add('selected');">
+              {{ mode }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="field mt-16">
+          <label for="merchant">Merchant (optional)</label>
+          <input type="text" id="merchant" name="merchant" placeholder="e.g. BigBasket" value="{{ expense.merchant if expense else '' }}">
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="3" placeholder="Add a note...">{{ expense.description if expense else '' }}</textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="location">Location (optional)</label>
+            <input type="text" id="location" name="location" placeholder="e.g. Coimbatore" value="{{ expense.location if expense else '' }}">
+          </div>
+          <div class="field">
+            <label for="tags">Tags (comma-separated)</label>
+            <input type="text" id="tags" name="tags" placeholder="e.g. work, urgent" value="{{ expense.tags if expense else '' }}">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block mt-16">{{ 'Save Changes' if expense else 'Add Expense' }}</button>
+        {% if expense %}
+        <form method="POST" action="{{ url_for('expense.delete_expense', expense_id=expense.id) }}" onsubmit="return confirm('Delete this expense?');" style="margin-top:12px;">
+          <button type="submit" class="btn btn-ghost btn-block">Delete Expense</button>
+        </form>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Default the date field to today when adding a new expense
+  const dateField = document.getElementById('date');
+  if (dateField && !dateField.value) {
+    dateField.value = new Date().toISOString().slice(0, 10);
+  }
+  window.CATEGORY_MAP = {
+    {% for cat in categories %}"{{ cat.id }}": "{{ cat.name|e }}"{{ ',' if not loop.last }}{% endfor %}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+{% endblock %}

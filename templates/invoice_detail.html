@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ invoice.invoice_number }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="no-print">{% include "_sidebar.html" %}</div>
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal no-print">
+    <a href="{{ url_for('invoice.invoices_page') }}" class="auth-back" style="position:static; display:inline-flex;">← Back to invoices</a>
+    <div style="display:flex; gap:10px;">
+      <button onclick="window.print()" class="btn btn-glass btn-sm">🖨️ Print</button>
+      <a href="{{ url_for('invoice.invoice_pdf', invoice_id=invoice.id) }}" class="btn btn-primary btn-sm">⬇ Download PDF</a>
+      <form method="POST" action="{{ url_for('invoice.delete_invoice', invoice_id=invoice.id) }}" onsubmit="return confirm('Delete this invoice? Any reserved stock will be restored.');">
+        <button type="submit" class="btn btn-ghost btn-sm">Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="invoice-doc glass-strong card reveal">
+    <div class="invoice-doc-head">
+      <div class="brand">Duo Expense</div>
+      <div class="invoice-doc-meta">
+        Invoice #: <strong>{{ invoice.invoice_number }}</strong><br>
+        Issued: {{ invoice.issue_date.strftime('%b %d, %Y') }}<br>
+        Due: {{ invoice.due_date.strftime('%b %d, %Y') if invoice.due_date else '—' }}<br>
+        <span class="invoice-status-pill {{ invoice.status }}">{{ invoice.status }}</span>
+      </div>
+    </div>
+
+    <div class="invoice-doc-parties">
+      <div>
+        <div class="party-label">Billed By</div>
+        <strong>{{ current_user.username }}</strong><br>
+        <span class="text-muted">via Duo Expense</span>
+      </div>
+      <div>
+        <div class="party-label">Billed To</div>
+        <strong>{{ invoice.client.name }}</strong><br>
+        <span class="text-muted">{{ invoice.client.phone or '' }}{{ ' · ' + invoice.client.email if invoice.client.email }}</span>
+      </div>
+    </div>
+
+    <table class="invoice-doc-table">
+      <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
+      <tbody>
+        {% for item in invoice.items %}
+        <tr>
+          <td>{{ item.description }}</td>
+          <td>{{ item.quantity }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(item.unit_price) }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(item.line_total) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="invoice-doc-bottom">
+      <div class="invoice-doc-qr">
+        <img src="{{ url_for('invoice.invoice_qr', invoice_id=invoice.id) }}" width="120" height="120" alt="Invoice QR code">
+        <div class="caption">{{ 'Scan to pay via UPI' if current_user.upi_id else 'Scan for invoice summary' }}</div>
+        {% if not current_user.upi_id %}<div class="caption" style="max-width:150px;">Add a UPI ID in <a href="{{ url_for('business.business_dashboard') }}">Business settings</a> to make this a payable QR</div>{% endif %}
+      </div>
+
+      <div class="invoice-totals-panel glass" style="position:static; width:260px;">
+        <div class="row"><span>Subtotal</span><span class="tabular">₹{{ '{:,.2f}'.format(invoice.subtotal) }}</span></div>
+        {% if invoice.discount_percent %}<div class="row"><span>Discount ({{ invoice.discount_percent }}%)</span><span class="tabular">-₹{{ '{:,.2f}'.format(invoice.discount_amount) }}</span></div>{% endif %}
+        {% if invoice.gst_percent %}<div class="row"><span>GST ({{ invoice.gst_percent }}%)</span><span class="tabular">+₹{{ '{:,.2f}'.format(invoice.gst_amount) }}</span></div>{% endif %}
+        <div class="row total"><span>Total</span><span class="tabular">₹{{ '{:,.2f}'.format(invoice.total_amount) }}</span></div>
+        <div class="row"><span>Amount Paid</span><span class="tabular text-success">₹{{ '{:,.2f}'.format(invoice.amount_paid) }}</span></div>
+        <div class="row"><span><strong>Balance Due</strong></span><span class="tabular"><strong>₹{{ '{:,.2f}'.format(invoice.balance_due()) }}</strong></span></div>
+      </div>
+    </div>
+
+    {% if invoice.notes %}
+    <div class="mt-24">
+      <div class="party-label">Notes</div>
+      <p>{{ invoice.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if invoice.balance_due() > 0 and invoice.status != 'draft' %}
+  <div class="glass card mt-24 reveal no-print" style="max-width:420px;">
+    <h3 style="font-size:15px; margin-bottom:12px;">Record a Payment</h3>
+    <form method="POST" action="{{ url_for('invoice.record_payment', invoice_id=invoice.id) }}" class="flex" style="gap:10px;">
+      <input type="number" name="amount_paid" min="0" max="{{ invoice.balance_due() }}" step="0.01" placeholder="Amount" required style="flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--surface-soft-border); background:var(--surface-soft); color:var(--ink);">
+      <button type="submit" class="btn btn-primary">Record</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

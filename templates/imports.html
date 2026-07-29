@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Import Dataset — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal">
+    <div>
+      <h1>Import Dataset</h1>
+      <p>Upload a CSV of past transactions and Duo Expense will log and monitor them as real expenses.</p>
+    </div>
+    <a href="{{ url_for('import_data.upload') }}" class="btn btn-primary">+ Upload Dataset</a>
+  </div>
+
+  {% if not batches %}
+  <div class="glass card reveal" style="text-align:center; padding:50px 20px;">
+    <div style="font-size:36px; margin-bottom:10px;">📄</div>
+    <h3 style="margin-bottom:8px;">No datasets imported yet</h3>
+    <p class="text-muted">Upload a bank statement or spending export (CSV) — Duo Expense will match columns automatically and let you review before anything is saved.</p>
+    <a href="{{ url_for('import_data.upload') }}" class="btn btn-primary mt-16" style="display:inline-flex;">+ Upload Your First Dataset</a>
+  </div>
+  {% else %}
+  <div class="glass reveal" style="padding:10px 4px;">
+    <div class="invoice-table-wrap">
+      <table class="tx-table" style="min-width:640px; width:100%;">
+        <thead><tr><th>File</th><th>Imported</th><th>Rows</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+          {% for b in batches %}
+          <tr style="cursor:pointer;" onclick="window.location='{{ url_for('import_data.batch_report', batch_id=b.id) }}'">
+            <td>{{ b.filename }}</td>
+            <td>{{ b.uploaded_at.strftime('%b %d, %Y') }}</td>
+            <td>{{ b.row_count }}{% if b.skipped_count %} <span class="text-muted">({{ b.skipped_count }} skipped)</span>{% endif %}</td>
+            <td class="tabular">₹{{ '{:,.2f}'.format(b.total_amount()) }}</td>
+            <td><a href="{{ url_for('import_data.batch_report', batch_id=b.id) }}" class="btn btn-glass btn-sm">View Report</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

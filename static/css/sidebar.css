@@ -1,0 +1,205 @@
+:root { --sidebar-width: 246px; }
+
+.app-sidebar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  bottom: 16px;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  z-index: 100;
+  overflow-y: auto;
+  transition: transform 0.3s var(--ease);
+}
+
+.sidebar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 0 4px; }
+.sidebar-top .logo { font-size: 18px; }
+.sidebar-close-btn { display: none; background: none; border: none; font-size: 16px; color: var(--ink-soft); }
+
+.sidebar-search {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: var(--r-full);
+  background: var(--surface-soft); border: 1px solid var(--surface-soft-border);
+  margin-bottom: 18px;
+}
+.sidebar-search input { border: none; background: transparent; outline: none; font-size: 13.5px; width: 100%; color: var(--ink); caret-color: var(--lavender-deep); }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: var(--r-sm);
+  font-size: 14px; font-weight: 600; color: var(--ink-soft);
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.sidebar-link span { font-size: 16px; }
+.sidebar-link:hover { background: var(--surface-soft-hover); color: var(--ink); }
+.sidebar-link:active { transform: scale(0.97); }
+
+/* ==========================================================================
+   AI Assistant chat widget
+   ========================================================================== */
+.chat-fab {
+  position: fixed;
+  bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+  right: calc(26px + env(safe-area-inset-right, 0px));
+  z-index: 400;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--lavender), var(--lavender-deep));
+  color: #fff; font-size: 24px; border: none;
+  box-shadow: 0 14px 32px rgba(124,92,191,0.45), inset 0 1px 0 rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  animation: chat-fab-pulse 3.5s ease-in-out infinite;
+}
+.chat-fab:hover { transform: scale(1.08); }
+.chat-fab:active { transform: scale(0.94); }
+@keyframes chat-fab-pulse {
+  0%, 100% { box-shadow: 0 14px 32px rgba(124,92,191,0.45), inset 0 1px 0 rgba(255,255,255,0.4); }
+  50% { box-shadow: 0 14px 40px rgba(124,92,191,0.65), inset 0 1px 0 rgba(255,255,255,0.5); }
+}
+
+.chat-panel {
+  position: fixed; bottom: 96px; right: 26px; z-index: 400;
+  width: 360px; max-width: calc(100vw - 40px);
+  height: 500px; max-height: calc(100vh - 140px);
+  display: none; flex-direction: column; overflow: hidden;
+  padding: 0;
+}
+.chat-panel.open { display: flex; animation: card-rise 0.25s var(--ease); }
+
+.chat-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+}
+.chat-panel-title { font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.chat-icon-btn { background: none; border: none; font-size: 14px; color: var(--ink-soft); padding: 4px 6px; cursor: pointer; }
+.chat-icon-btn:hover { color: var(--ink); }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+}
+.chat-empty { font-size: 13px; color: var(--ink-soft); text-align: center; padding: 30px 10px; }
+
+.chat-bubble {
+  max-width: 84%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.5;
+  white-space: pre-wrap; word-wrap: break-word;
+}
+.chat-bubble.user {
+  align-self: flex-end; background: linear-gradient(135deg, var(--lavender), var(--lavender-deep));
+  color: #fff; border-bottom-right-radius: 4px;
+}
+.chat-bubble.assistant {
+  align-self: flex-start; background: var(--surface-soft); color: var(--ink); border-bottom-left-radius: 4px;
+}
+.chat-bubble.error {
+  align-self: flex-start; background: #FCE8EC; color: #B23A54; font-size: 12.5px;
+}
+
+.chat-typing { align-self: flex-start; display: flex; gap: 4px; padding: 10px 14px; }
+.chat-typing span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ink-soft);
+  animation: chat-typing-bounce 1.2s ease-in-out infinite;
+}
+.chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes chat-typing-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+.chat-input-row {
+  display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--glass-border);
+}
+.chat-input-row input {
+  flex: 1; padding: 10px 14px; border-radius: var(--r-full);
+  border: 1.5px solid var(--surface-soft-border); background: var(--surface-soft);
+  color: var(--ink); font-size: 13px; outline: none;
+}
+.chat-input-row input:focus { border-color: var(--lavender); }
+
+@media (max-width: 640px) {
+  .chat-panel { right: 12px; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+  .chat-fab { right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+.sidebar-link.active {
+  background: linear-gradient(135deg, var(--lavender), var(--lavender-deep));
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(124, 92, 191, 0.35);
+}
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-bottom { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+
+/* Floating panels (notifications, search) — rendered outside .app-sidebar
+   and positioned via JS in viewport coordinates, so they work regardless
+   of the sidebar's own overflow/transform state. */
+.search-results-dropdown {
+  position: fixed; width: 320px; max-width: calc(100vw - 20px); max-height: 420px; overflow-y: auto;
+  padding: 10px; z-index: 500; display: none;
+}
+.search-results-dropdown.open { display: block; animation: fade-in 0.2s var(--ease); }
+.search-group { margin-bottom: 8px; }
+.search-group-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink-soft); padding: 8px 10px 4px;
+}
+.search-result-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 10px; border-radius: var(--r-sm); font-size: 13.5px; color: var(--ink);
+  transition: background 0.15s var(--ease);
+}
+.search-result-item:hover { background: var(--surface-soft-hover); }
+.search-result-item .sr-label { font-weight: 600; }
+.search-result-item .sr-subtitle { font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+
+.notif-dropdown {
+  position: fixed; width: 300px; max-width: calc(100vw - 20px);
+  padding: 14px; z-index: 500; display: none;
+}
+.notif-dropdown.open { display: block; animation: fade-in 0.2s var(--ease); }
+.notif-dropdown h4 { font-size: 14px; margin-bottom: 10px; color: var(--ink); }
+.notif-item { padding: 10px 0; font-size: 13px; color: var(--ink); border-top: 1px solid rgba(124,92,191,0.1); display: flex; gap: 8px; align-items: flex-start; }
+.notif-item:first-child { border-top: none; }
+.notif-empty { font-size: 13px; color: var(--ink-soft); text-align: center; padding: 16px 0; }
+
+/* Content shifts right to make room for the fixed sidebar */
+.app-shell { margin-left: calc(var(--sidebar-width) + 32px); padding-top: 16px; }
+
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: calc(18px + env(safe-area-inset-top, 0px));
+  left: calc(18px + env(safe-area-inset-left, 0px));
+  z-index: 90;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--glass-fill-strong);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  font-size: 18px;
+  box-shadow: var(--glass-shadow);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(20, 14, 32, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 95;
+}
+.sidebar-backdrop.open { display: block; }
+
+@media (max-width: 980px) {
+  .app-shell { margin-left: 0; padding-top: 70px; }
+  .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+  .sidebar-close-btn { display: block; }
+  .app-sidebar {
+    top: 0; left: 0; bottom: 0;
+    border-radius: 0;
+    transform: translateX(-105%);
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  }
+  .app-sidebar.open { transform: translateX(0); }
+}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="app-shell" style="margin-left:0; padding:28px 32px; max-width:760px;">
+  <a href="{{ url_for('auditor.auditor_dashboard') }}" style="font-size:13px; color:var(--lavender-deep); font-weight:600;">← Back to dashboard</a>
+
+  <div class="glass card reveal" style="padding:24px 28px; margin:16px 0 24px;">
+    <h1 style="font-size:20px; margin-bottom:6px;">{{ project.title }}</h1>
+    <p class="text-muted" style="font-size:13px; margin-bottom:14px;">
+      Filing period {{ project.period_start.strftime('%d %b %Y') }} – {{ project.period_end.strftime('%d %b %Y') }}
+      · Bids close {{ project.bid_deadline.strftime('%d %b %Y') }}
+    </p>
+    {% if project.description %}<p style="font-size:13.5px; margin-bottom:14px;">{{ project.description }}</p>{% endif %}
+    <p style="font-size:13px;">
+      <strong>{{ 'Lowest bid so far: ₹%.0f'|format(lowest.amount) if lowest else 'No bids yet — be the first' }}</strong>
+      · Platform fee: {{ project.platform_fee_percent|int }}%
+    </p>
+  </div>
+
+  {% if project.status == 'open' and not project.bid_deadline_passed() %}
+  <div class="glass card reveal" style="padding:20px 24px;">
+    <h3 style="font-size:14.5px; margin-bottom:12px;">{{ 'Update Your Bid' if my_bid else 'Place a Bid' }}</h3>
+    <form method="POST" action="{{ url_for('auditor.submit_bid', project_id=project.id) }}">
+      <div class="field">
+        <label for="amount">Your fee (₹)</label>
+        <input type="number" id="amount" name="amount" min="1" step="1" value="{{ my_bid.amount|int if my_bid else '' }}" required>
+      </div>
+      <div class="field">
+        <label for="message">Message to client (optional)</label>
+        <textarea id="message" name="message" rows="3">{{ my_bid.message if my_bid else '' }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">{{ 'Update Bid' if my_bid else 'Submit Bid' }}</button>
+      {% if my_bid %}
+      <span class="text-muted" style="font-size:12px; margin-left:8px;">Current bid: ₹{{ '%.0f'|format(my_bid.amount) }}</span>
+      {% endif %}
+    </form>
+  </div>
+  {% if my_bid %}
+  <form method="POST" action="{{ url_for('auditor.withdraw_bid', bid_id=my_bid.id) }}" style="margin-top:10px;">
+    <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Withdraw your bid on this project?')">Withdraw Bid</button>
+  </form>
+  {% endif %}
+  {% elif my_bid and my_bid.status == 'won' %}
+  <div class="glass card reveal" style="padding:20px 24px;">
+    <p style="font-size:13.5px;">🎉 You won this project at ₹{{ '%.0f'|format(my_bid.amount) }}.
+    Your payout after the platform fee: <strong>₹{{ '%.0f'|format(my_bid.auditor_payout()) }}</strong></p>
+    <a href="{{ url_for('auditor.project_data', project_id=project.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;">View Client Data</a>
+  </div>
+  {% else %}
+  <p class="text-muted" style="font-size:13px;">Bidding on this project has closed.</p>
+  {% endif %}
+</div>
+{% endblock %}

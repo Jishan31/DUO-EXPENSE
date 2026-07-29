@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ project.title }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell" style="max-width:640px;">
+  <a href="{{ url_for('filing.project_detail', project_id=project.id) }}" style="font-size:13px; color:var(--lavender-deep); font-weight:600;">← Back to project</a>
+
+  <div class="page-head reveal" style="margin-top:16px;">
+    <h1>Edit Filing Project</h1>
+    <p>Changes are visible to auditors immediately — only editable while still open for bids.</p>
+  </div>
+
+  <form method="POST" class="glass card reveal" style="padding:24px 28px; margin-top:16px;">
+    <div class="field">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" value="{{ project.title }}" required>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="3">{{ project.description }}</textarea>
+    </div>
+    <div style="display:flex; gap:14px; flex-wrap:wrap;">
+      <div class="field" style="flex:1; min-width:150px;">
+        <label for="period_start">Filing period from</label>
+        <input type="date" id="period_start" name="period_start" value="{{ project.period_start.isoformat() }}" required>
+      </div>
+      <div class="field" style="flex:1; min-width:150px;">
+        <label for="period_end">Filing period to</label>
+        <input type="date" id="period_end" name="period_end" value="{{ project.period_end.isoformat() }}" required>
+      </div>
+    </div>
+    <div class="field">
+      <label for="bid_deadline">Bids close on</label>
+      <input type="date" id="bid_deadline" name="bid_deadline" value="{{ project.bid_deadline.isoformat() }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Save Changes</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+{% endblock %}

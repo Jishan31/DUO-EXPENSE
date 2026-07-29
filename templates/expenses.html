@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Expenses — Duo Expense{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head flex-between reveal">
+    <div>
+      <h1>All Expenses</h1>
+      <p>{{ expenses|length }} expense{{ 'es' if expenses|length != 1 else '' }} recorded</p>
+    </div>
+    <a href="{{ url_for('expense.add_expense') }}" class="btn btn-primary">+ Add Expense</a>
+  </div>
+
+  <div class="glass reveal" style="padding:10px 4px;">
+    <table class="tx-table" style="min-width:640px; width:100%;">
+      <thead>
+        <tr><th>Name</th><th>Category</th><th>Date</th><th>Payment</th><th>Amount</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for e in expenses %}
+        <tr>
+          <td>{{ e.name }}</td>
+          <td><span class="tx-cat-dot" style="background:{{ e.category.color }}"></span>{{ e.category.name }}</td>
+          <td>{{ e.date.strftime('%b %d, %Y') }}</td>
+          <td>{{ e.payment_mode }}</td>
+          <td class="tabular">₹{{ '{:,.2f}'.format(e.amount) }}</td>
+          <td><a href="{{ url_for('expense.edit_expense', expense_id=e.id) }}" class="btn btn-ghost btn-sm">Edit</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="tx-empty">No expenses yet — <a href="{{ url_for('expense.add_expense') }}">add your first one</a>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

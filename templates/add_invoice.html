@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}New Invoice — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <a href="{{ url_for('invoice.invoices_page') }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to invoices</a>
+
+  <div class="page-head reveal">
+    <h1>New Invoice</h1>
+    <p>Totals update live as you add items.</p>
+  </div>
+
+  {% if not clients %}
+  <div class="glass card reveal" style="text-align:center; padding:50px 20px;">
+    <div style="font-size:36px; margin-bottom:10px;">🧑‍💼</div>
+    <h3 style="margin-bottom:8px;">You need a client first</h3>
+    <p class="text-muted">Add a client, then come back to create their invoice.</p>
+    <a href="{{ url_for('client.add_client') }}" class="btn btn-primary mt-16" style="display:inline-flex;">+ Add Client</a>
+  </div>
+  {% else %}
+
+  <form method="POST" id="invoice-form">
+    <input type="hidden" name="items_json" id="items_json">
+
+    <div class="invoice-builder-grid">
+      <div>
+        <div class="glass card reveal" style="margin-bottom:18px;">
+          <div class="field-row">
+            <div class="field">
+              <label for="client_id">Client</label>
+              <select id="client_id" name="client_id" required>
+                <option value="">Choose a client…</option>
+                {% for c in clients %}
+                <option value="{{ c.id }}" {{ 'selected' if c.id == preselected_client }}>{{ c.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="due_date">Due Date</label>
+              <input type="date" id="due_date" name="due_date">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="discount_percent">Discount (%)</label>
+              <input type="number" id="discount_percent" name="discount_percent" min="0" max="100" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label for="gst_percent">GST (%)</label>
+              <input type="number" id="gst_percent" name="gst_percent" min="0" max="100" step="0.1" value="18">
+            </div>
+          </div>
+        </div>
+
+        <div class="glass card reveal">
+          <div class="flex-between" style="margin-bottom:12px;">
+            <h3 style="font-size:15px;">Line Items</h3>
+          </div>
+          <div class="line-items-scroll">
+            <table class="line-items-table">
+              <thead><tr><th style="width:38%;">Item</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th><th></th></tr></thead>
+              <tbody id="line-items-body"></tbody>
+            </table>
+          </div>
+          <button type="button" class="btn btn-glass btn-sm add-line-btn" id="add-line-btn">+ Add Line Item</button>
+        </div>
+
+        <div class="field mt-24">
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Payment terms, thank-you note, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="invoice-totals-panel glass-strong reveal">
+        <div class="row"><span>Subtotal</span><span id="preview-subtotal" class="tabular">₹0</span></div>
+        <div class="row"><span>Discount</span><span id="preview-discount" class="tabular">-₹0</span></div>
+        <div class="row"><span>GST</span><span id="preview-gst" class="tabular">+₹0</span></div>
+        <div class="row total"><span>Total</span><span id="preview-total" class="tabular">₹0</span></div>
+
+        <label class="field-check mt-16" style="margin-bottom:16px;">
+          <input type="checkbox" name="save_as_draft" value="1">
+          Save as draft (won't deduct stock yet)
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-block">Create Invoice</button>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+</div>
+
+<template id="line-item-template">
+  <tr class="line-item-row">
+    <td>
+      <div class="custom-select-wrap">
+        <select class="item-product-select" hidden tabindex="-1" aria-hidden="true">
+          <option value="">Custom item</option>
+          {% for p in products %}
+          <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-stock="{{ p.quantity_available }}" data-name="{{ p.name|e }}">
+            {{ p.name }} ({{ p.quantity_available }} in stock)
+          </option>
+          {% endfor %}
+        </select>
+        <button type="button" class="custom-select-btn">Custom item</button>
+        <div class="custom-select-list"></div>
+      </div>
+    </td>
+    <td><input type="text" class="item-description" placeholder="Description"></td>
+    <td><input type="number" class="item-qty" min="1" step="1" value="1"></td>
+    <td><input type="number" class="item-price" min="0" step="0.01" value="0"></td>
+    <td class="item-line-total tabular">₹0</td>
+    <td><button type="button" class="remove-line-btn" title="Remove">✕</button></td>
+  </tr>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/invoice-builder.js') }}"></script>
+{% endblock %}

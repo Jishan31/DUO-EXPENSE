@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Budgets — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/budgets.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="page-head reveal">
+    <h1>Budgets</h1>
+    <p>{{ data.month_label }} — set limits, and Duo Expense will warn you before you cross them.</p>
+  </div>
+
+  {% for alert in data.alerts %}
+  <div class="alert-banner {{ 'warning' if alert.type == 'category_warning' else '' }} reveal">
+    ⚠️ {{ alert.message }}
+  </div>
+  {% endfor %}
+
+  <div class="budget-hero glass-strong reveal">
+    <div class="gauge-wrap" id="total-gauge" data-percent="{{ data.total_percent }}" data-status="{{ data.total_status }}">
+      <svg viewBox="0 0 120 120">
+        <circle class="gauge-track" cx="60" cy="60" r="50"></circle>
+        <circle class="gauge-fill status-{{ data.total_status }}" cx="60" cy="60" r="50"></circle>
+      </svg>
+      <div class="gauge-label">
+        <span class="pct">{{ data.total_percent|round(0)|int if data.total_budget else '—' }}{{ '%' if data.total_budget else '' }}</span>
+        <span class="sub">used</span>
+      </div>
+    </div>
+    <div class="budget-hero-info">
+      <h2>Overall Monthly Budget</h2>
+      <p>Spent <strong class="tabular">₹{{ '{:,.0f}'.format(data.total_spent) }}</strong>
+        {% if data.total_budget %} of <strong class="tabular">₹{{ '{:,.0f}'.format(data.total_budget) }}</strong>{% else %} — no overall limit set yet{% endif %}
+      </p>
+      <form class="budget-edit-form" id="total-budget-form">
+        <input type="number" id="total-budget-input" min="0" step="100" placeholder="e.g. 40000" value="{{ data.total_budget or '' }}">
+        <button type="submit" class="btn btn-primary btn-sm">Save Limit</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="page-head mt-32">
+    <h2 style="font-size:19px;">Category Budgets</h2>
+    <p style="font-size:13.5px;">Tap a category card to edit its limit.</p>
+  </div>
+
+  <div class="budget-grid">
+    {% for c in data.categories %}
+    <div class="budget-card glass card" style="cursor:pointer;"
+         onclick="openCategoryModal({{ c.id }}, '{{ c.name|e }}', '{{ c.icon }}', '{{ c.color }}', {{ c.budget or 0 }})">
+      <div class="gauge-wrap sm" data-percent="{{ c.percent }}" data-status="{{ c.status }}">
+        <svg viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="50"></circle>
+          <circle class="gauge-fill status-{{ c.status }}" cx="60" cy="60" r="50"></circle>
+        </svg>
+        <div class="gauge-label"><span class="pct">{{ c.percent|round(0)|int if c.budget else '—' }}{{ '%' if c.budget else '' }}</span></div>
+      </div>
+      <div class="budget-card-info">
+        <div class="name"><span class="dot" style="background:{{ c.color }}"></span>{{ c.name }}</div>
+        <div class="figures">
+          <strong>₹{{ '{:,.0f}'.format(c.spent) }}</strong>
+          {% if c.budget %} of ₹{{ '{:,.0f}'.format(c.budget) }}{% else %} spent — no limit set{% endif %}
+        </div>
+        <span class="status-pill status-{{ c.status }}">
+          {% if c.status == 'over' %}Over budget{% elif c.status == 'warning' %}Near limit{% elif c.status == 'ok' %}On track{% else %}No limit{% endif %}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% include "_category_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/budgets.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Add Loan / EMI — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loans.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="form-page-wrap">
+    <a href="{{ url_for('loan.loans_page') }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to loans</a>
+
+    <div class="form-panel glass-strong reveal">
+      <h1 style="font-size:22px; margin-bottom:4px;">Add Loan / EMI</h1>
+      <p class="text-muted mt-8" style="margin-bottom:24px;">Duo Expense builds the full month-by-month repayment schedule automatically.</p>
+
+      <form method="POST" id="loan-form">
+        <div class="field">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" placeholder="e.g. Home Loan or Bike EMI" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="loan_type">Loan Type</label>
+            <select id="loan_type" name="loan_type">
+              {% for t in loan_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="lender">Bank / Lender</label>
+            <input type="text" id="lender" name="lender" placeholder="e.g. HDFC Bank">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="principal_amount">Loan Amount (₹)</label>
+          <input type="number" id="principal_amount" name="principal_amount" min="1" step="1" placeholder="e.g. 500000" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="interest_rate">Interest Rate (% p.a.)</label>
+            <input type="number" id="interest_rate" name="interest_rate" min="0" step="0.01" placeholder="e.g. 8.5" value="0">
+          </div>
+          <div class="field">
+            <label for="tenure_months">Tenure (months)</label>
+            <input type="number" id="tenure_months" name="tenure_months" min="1" step="1" placeholder="e.g. 60" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="start_date">First EMI Date</label>
+          <input type="date" id="start_date" name="start_date" required>
+        </div>
+
+        <div class="emi-preview glass">
+          <div class="stat-label">Estimated Monthly EMI</div>
+          <div class="headline"><span>₹</span><span id="emi-preview-value">0</span></div>
+          <div class="emi-preview-grid">
+            <div><div class="stat-label">Total Interest</div><div class="stat-value tabular" id="emi-total-interest">₹0</div></div>
+            <div><div class="stat-label">Total Payment</div><div class="stat-value tabular" id="emi-total-payment">₹0</div></div>
+            <div><div class="stat-label">Last EMI Date</div><div class="stat-value" id="emi-end-date">—</div></div>
+          </div>
+        </div>
+
+        <div class="field mt-16">
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Add a note..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block mt-16">Save Loan &amp; Build Schedule</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/loans.js') }}"></script>
+{% endblock %}

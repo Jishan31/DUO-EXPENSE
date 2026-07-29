@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ loan.name }} — Duo Expense{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loans.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "_sidebar.html" %}
+
+<div class="app-shell">
+  <div class="form-page-wrap">
+    <a href="{{ url_for('loan.loan_detail', loan_id=loan.id) }}" class="auth-back" style="position:static; display:inline-flex; margin-bottom:18px;">← Back to loan</a>
+
+    <div class="form-panel glass-strong reveal">
+      <h1 style="font-size:22px; margin-bottom:4px;">Edit Loan</h1>
+      <p class="text-muted mt-8" style="margin-bottom:24px;">Amount, rate, and tenure are locked once a schedule exists — delete and re-add if those need to change.</p>
+
+      <form method="POST">
+        <div class="field">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" value="{{ loan.name }}" required>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="loan_type">Loan Type</label>
+            <select id="loan_type" name="loan_type">
+              {% for t in loan_types %}<option value="{{ t }}" {{ 'selected' if t == loan.loan_type }}>{{ t }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="lender">Bank / Lender</label>
+            <input type="text" id="lender" name="lender" value="{{ loan.lender }}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="active" {{ 'selected' if loan.status == 'active' }}>Active</option>
+            <option value="closed" {{ 'selected' if loan.status == 'closed' }}>Closed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="3">{{ loan.notes }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block mt-16">Save Changes</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

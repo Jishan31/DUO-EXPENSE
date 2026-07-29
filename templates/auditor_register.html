@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Join as an Auditor — Duo Expense{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+  <a href="{{ url_for('main.landing') }}" class="auth-back">← Back to home</a>
+
+  <div class="auth-card glass-strong" style="max-width:480px;">
+    <div class="auth-orb">🧾</div>
+    <h1>Join as an Auditor</h1>
+    <p class="auth-sub">Bid on IT filing projects posted by Duo Expense users — lowest bid wins the job.</p>
+
+    <form method="POST" action="{{ url_for('auditor.auditor_register') }}">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="yourname" required minlength="3">
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
+      <div class="field">
+        <label for="qualification">Qualification</label>
+        <input type="text" id="qualification" name="qualification" placeholder="e.g. Chartered Accountant, 8 years' experience">
+      </div>
+      <div class="field">
+        <label for="bio">Short bio (shown to clients)</label>
+        <textarea id="bio" name="bio" rows="3" placeholder="What you specialize in, industries you've worked with, etc."></textarea>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="At least 8 characters" required minlength="8" data-password-strength>
+        <div class="strength-track"><div class="strength-meter"></div></div>
+        <span class="strength-label"></span>
+      </div>
+      <div class="field">
+        <label for="confirm_password">Confirm password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Create Auditor Account</button>
+    </form>
+
+    <p class="auth-footer-link">Not an auditor? <a href="{{ url_for('auth.register') }}">Create a regular account</a> instead.</p>
+    <p class="auth-footer-link">Already have an auditor account? <a href="{{ url_for('auditor.auditor_login') }}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}
