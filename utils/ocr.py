@@ -15,6 +15,11 @@ from datetime import date
 
 try:
     import pytesseract
+    import shutil
+    import pytesseract
+
+    print("Tesseract path:", shutil.which("tesseract"))
+    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
     from PIL import Image, ImageOps, ImageFilter
     OCR_AVAILABLE = True
 
