@@ -15,11 +15,6 @@ from datetime import date
 
 try:
     import pytesseract
-    import shutil
-    import pytesseract
-
-    print("Tesseract path:", shutil.which("tesseract"))
-    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
     from PIL import Image, ImageOps, ImageFilter
     OCR_AVAILABLE = True
 
@@ -95,23 +90,25 @@ def extract_text(image_path):
         return ""
     try:
         img = Image.open(image_path)
-        img = ImageOps.exif_transpose(img)  # respect phone camera orientation
-        img = img.convert("L")  # grayscale improves OCR accuracy on receipts
+        img = ImageOps.exif_transpose(img)
+        img = img.convert("L")
+
+        # Reduce very large images to save memory
+        MAX_WIDTH = 1200
+        if img.width > MAX_WIDTH:
+             ratio = MAX_WIDTH / img.width
+             img = img.resize((MAX_WIDTH, int(img.height * ratio)))
+
         img = img.filter(ImageFilter.SHARPEN)
-        # Upscale small phone photos slightly — helps Tesseract on thin receipt fonts
-        if img.width < 1200:
-            ratio = 1200 / img.width
-            img = img.resize((1200, int(img.height * ratio)))
     except Exception:
         return ""  # couldn't even open/process the image file itself
 
     try:
-        return pytesseract.image_to_string(img, lang="eng")
+        return pytesseract.image_to_string(img)
     except pytesseract.TesseractNotFoundError:
         raise
-    except Exception as e:
-        print("OCR ERROR:", repr(e), flush=True)
-        raise
+    except Exception:
+        return ""
 
 
 def _clean_number(raw):
