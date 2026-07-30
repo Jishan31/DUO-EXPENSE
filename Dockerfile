@@ -1,9 +1,10 @@
 FROM python:3.12-slim
-
 RUN apt-get update && \
     apt-get install -y tesseract-ocr && \
+    which tesseract && \
+    tesseract --version && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/**
 
 WORKDIR /app
 
